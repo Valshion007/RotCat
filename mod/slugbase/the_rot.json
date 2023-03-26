@@ -6,10 +6,12 @@
 		"color": "1b0b21",
 		"custom_colors": [
 			{"name": "Body", "story": "1b0b21", "arena": ["1b0b21"]},
-			{"name": "Eyes", "story": "0000FF", "arena": ["0000FF"]}
+			{"name": "Eyes", "story": "0000FF", "arena": ["0000FF"]},
+			{"name": "Rot Eyes", "story": "0A0AFF", "arena": ["0A0AFF"]}
 		],
 		"start_room": ["RM_SFINAL", "GW_B05"],
 		"select_menu_scene": "slugcat_rot",
+		"sleep_scene": "slugrot_sleep",
 		"weight": 1.1,
 		"climb_speed": 1.2,
 		"crouch_stealth": 0.7,
