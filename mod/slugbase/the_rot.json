@@ -1,0 +1,35 @@
+{
+	"id": "slugrot",
+	"name": "The Slugrot",
+	"description": "A slugcat that is borne of the infection, shaped, molded by it.<LINE>Use you newfound abilities to conquer the land",
+	"features": {
+		"color": "1b0b21",
+		"custom_colors": [
+			{"name": "Body", "story": "1b0b21", "arena": ["1b0b21"]},
+			{"name": "Eyes", "story": "0000FF", "arena": ["0000FF"]}
+		],
+		"start_room": ["RM_SFINAL", "GW_B05"],
+		"select_menu_scene": "slugcat_rot",
+		"weight": 1.1,
+		"climb_speed": 1.2,
+		"crouch_stealth": 0.7,
+		"alignments": {
+			"Lizards": { "like": -0.9, "strength": 0.6},
+			"Scavengers": { "like": -0.5, "strength": 0.75}
+		},
+		"diet": {
+			"base": "White",
+			"corpses": 1.25,
+			"plants": 1.25,
+			"meat": 1.25
+		},
+		"back_spear": true,
+		"karma": 1,
+		"karma_cap": 9,
+		"cycle_length_min": 6.5,
+		"cycle_length_max": 13,
+		"food_min": 7,
+		"food_max": 12,
+		"world_state": ["Rivulet", "Red"]
+	}
+}

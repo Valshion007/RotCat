@@ -1,0 +1,20 @@
+{"frames": {
+
+"lightgrayscalesprite.png":
+{
+	"frame": {"x":2,"y":2,"w":58,"h":58},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":58,"h":58},
+	"sourceSize": {"w":58,"h":58}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "lightgrayscalesprite.png",
+	"format": "RGBA8888",
+	"size": {"w":62,"h":62},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:94a8f9b3e1613cfb9da1bb173dc44d99:8b7fd3934b0c1baab7346a26f3aa4b3f:5051e1094691fc9ee2faadc8b4421a03$"
+}
+}

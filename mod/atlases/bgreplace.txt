@@ -1,0 +1,20 @@
+{"frames": {
+
+"bgreplace.png":
+{
+	"frame": {"x":0,"y":0,"w":480,"h":270},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1920,"h":270},
+	"sourceSize": {"w":1920,"h":1080}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "bgreplace.png",
+	"format": "RGBA8888",
+	"size": {"w":480,"h":270},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:85cafcc126b6d9d23640803a25ab901c:3a8ae0266cdf016bc996e56e56579bba:76f5d58707d313f3ae9b05cfb39a09a5$"
+}
+}

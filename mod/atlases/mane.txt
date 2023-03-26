@@ -1,0 +1,20 @@
+{"frames": {
+
+"mane.png":
+{
+	"frame": {"x":2,"y":2,"w":64,"h":59},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":59},
+	"sourceSize": {"w":64,"h":59}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "mane.png",
+	"format": "RGBA8888",
+	"size": {"w":68,"h":63},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:600d130e78a39fdd434a6c8def86f828:24ea8fe47a79e4e1666732d4cf115d67:8e197b32bf4bb306070c9d859d69a832$"
+}
+}
