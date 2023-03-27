@@ -1,0 +1,16 @@
+{
+  "Title": "Slugrot",
+  "Description": "Play as the Slugrot, a fusion of the Rot and a slugcat who found themselves in a bad position, at a bad time.\nOr perhaps, the perfect place at just the right time...",
+  "ID": "rotcat",
+  "Version": "0.0.1",
+  "TargetGameVersion": "v1.9.06",
+  "Requirements": "slime-cubed.slugbase",
+  "RequirementNames": "Slugbase",
+  "Authors": "Art: Lurzard\nCode: MoonWatcher610",
+  "Visibility": "Unlisted",
+  "Tags": [
+    "Campaigns"
+  ],
+  "WorkshopID": 2952590208,
+  "UploadFilesOnly": false
+}

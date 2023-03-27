@@ -18,7 +18,7 @@ using SlugBase;
 
 namespace RotCat;
 
-[BepInPlugin("rotcat", "RotCat", "0.1.0")]
+[BepInPlugin("rotcat", "RotCat", "0.0.1")]
 public class RotCat : BaseUnityPlugin
 {
     bool init = false;
@@ -31,7 +31,7 @@ public class RotCat : BaseUnityPlugin
     public void OnEnable()
     {
         //On.Player.AddFood += PlayerAddFoodHook;
-        On.RainWorld.OnModsInit += Init; //Will add options later I'm sure
+        On.RainWorld.OnModsInit += Init;
         
         On.Player.ctor += (orig, self, abstractCreature, world) =>
         {
@@ -162,28 +162,22 @@ public class RotCat : BaseUnityPlugin
         On.Player.Update += (orig, self, eu) =>
         {
             orig(self, eu);
-            /*if (Input.GetKey(KeyCode.J)) {
-                AbstractCreature abstractPlayer = new AbstractCreature(self.room.world, StaticWorld.GetCreatureTemplate("Slugcat"), null, self.room.GetWorldCoordinate(self.mainBodyChunk.pos), self.room.game.GetNewID());
-                self.room.AddObject(new Player(abstractPlayer, self.room.world));
-            }*/
-            //self.room.AddObject(new CorruptionSpore());
-            //base.Logger.LogDebug(self.bodyChunks.Length);
             tenticleStuff.TryGetValue(self, out var something);
             if (something.isRot) {
                 self.scavengerImmunity = 9999;  //Might want to add a system that calculates this based on rep, since you should be able to become friends if you want
-                something.overrideControls = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.W);
+                something.overrideControls = Input.GetKey(staticOptions.tentMovementLeft.Value) || Input.GetKey(staticOptions.tentMovementRight.Value) || Input.GetKey(staticOptions.tentMovementDown.Value) || Input.GetKey(staticOptions.tentMovementUp.Value);
                 if (something.grabWallCooldown > 0) { //Doesn't do anything right now, need to get it to play nice with the logic first
                     something.grabWallCooldown -= 0.5f;
                 }
                 //This whole bit controls the lengthening of the tentacles when the player is standing still, or moving too much
-                Functions.TentacleRetraction(((Custom.Dist(something.previousPosition, self.mainBodyChunk.pos) > 1f && Custom.Dist(something.previousPosition, self.mainBodyChunk.pos) < 3.5f) || self.input[0].pckp) && something.retractionTimer < 60, something.retractionTimer > -20 && !self.input[0].pckp, something.retractionTimer <= 40 && something.retractionTimer > 0, self, something);
+                Functions.TentacleRetraction(((Custom.Dist(something.previousPosition, self.mainBodyChunk.pos) > 1f && Custom.Dist(something.previousPosition, self.mainBodyChunk.pos) < 3.5f) || Input.GetKey(staticOptions.tentMovementEnable.Value)) && something.retractionTimer < 60, something.retractionTimer > -20 && !Input.GetKey(staticOptions.tentMovementEnable.Value), something.retractionTimer <= 40 && something.retractionTimer > 0, self, something);
 
                 //Physics for the individual points and Corruption circles
                 int numIterations = 30;
                 foreach (var tentacle in something.tentacles) {
                     foreach (Point p in tentacle.pList)
                     {
-                        if (Array.IndexOf(tentacle.pList, p) == tentacle.pList.Length-1 && (self.input[0].pckp && something.targetPos[Array.IndexOf(something.tentacles, tentacle)].foundSurface && ((Array.IndexOf(something.tentacles, tentacle) == 0) || something.automateMovement))) {  //If it is the very last point in the list, the tentacle tip
+                        if (Array.IndexOf(tentacle.pList, p) == tentacle.pList.Length-1 && (Input.GetKey(staticOptions.tentMovementEnable.Value) && something.targetPos[Array.IndexOf(something.tentacles, tentacle)].foundSurface && ((Array.IndexOf(something.tentacles, tentacle) == 0) || something.automateMovement))) {  //If it is the very last point in the list, the tentacle tip
                             p.locked = true;
                         }
                         else {
@@ -239,10 +233,10 @@ public class RotCat : BaseUnityPlugin
                     Functions.StickCalculations(totalTentacles);
                 }
 
-                if (self.input[0].pckp) {//Something is bugged when first activating this, reminder to figure out why. Needs fixing
+                if (Input.GetKey(staticOptions.tentMovementEnable.Value)) {//Something is bugged when first activating this, reminder to figure out why. Needs fixing
                     if (!(self.room.GetTile(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position).Solid || self.room.GetTile(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position).AnyBeam) && !something.automateMovement) {
-                        int upDown = (Input.GetKey(KeyCode.W)? 1:0) + (Input.GetKey(KeyCode.S)? -1:0);
-                        int rightLeft = (Input.GetKey(KeyCode.D)? 1:0) + (Input.GetKey(KeyCode.A)? -1:0);
+                        int upDown = (Input.GetKey(staticOptions.tentMovementUp.Value)? 1:0) + (Input.GetKey(staticOptions.tentMovementDown.Value)? -1:0);
+                        int rightLeft = (Input.GetKey(staticOptions.tentMovementRight.Value)? 1:0) + (Input.GetKey(staticOptions.tentMovementLeft.Value)? -1:0);
                         if (!something.overrideControls && Custom.Dist(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position + new Vector2(3*self.input[0].x, 3*self.input[0].y), self.mainBodyChunk.pos) < 300f) {
                             something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position += new Vector2(3*self.input[0].x, 3*self.input[0].y);
                         }
@@ -286,7 +280,7 @@ public class RotCat : BaseUnityPlugin
                         }
                     }
                     bool flag = something.overrideControls;
-                    float startPos = Functions.FindPos(flag, self);
+                    float startPos = Functions.FindPos(flag, self, staticOptions);
                     for (int i = 0; i < something.targetPos.Length; i++) {
                         if (something.targetPos[i].foundSurface && Custom.Dist(self.mainBodyChunk.pos, something.targetPos[i].targetPosition) >= 250) {
                             something.targetPos[i].foundSurface = false;
@@ -696,10 +690,10 @@ public class RotCat : BaseUnityPlugin
                 //Futile.atlasManager.LoadAtlas("atlases/body");
                 //Futile.atlasManager.LoadAtlas("atlases/mane");
                 //Futile.atlasManager.LoadAtlas("atlases/bgreplace");
-                //this.Options = new RotCatOptions(this, Logger);
-                //staticOptions = this.Options;
-                //MachineConnector.SetRegisteredOI("rotcat", Options);
-                //configWorking = true;
+                this.Options = new RotCatOptions(this, Logger);
+                staticOptions = this.Options;
+                MachineConnector.SetRegisteredOI("rotcat", Options);
+                configWorking = true;
             } catch (Exception err) {
                 base.Logger.LogError(err);
                 configWorking = false;
@@ -745,33 +739,33 @@ public class PlayerEx
     public bool isRot = false;  //Is set to true if the Slugrot character is selected, so it doesn't apply anything to non-rot characters
 }
 public class Functions {
-    public static float FindPos(bool flag, Player self) {
-        if ((Input.GetKey(KeyCode.D) && flag) || (!flag && self.input[0].x == 1)) {
-            if ((Input.GetKey(KeyCode.W) && flag) || (!flag && self.input[0].y == 1)) {
+    public static float FindPos(bool flag, Player self, RotCatOptions options) {
+        if ((Input.GetKey(options.tentMovementRight.Value) && flag) || (!flag && self.input[0].x == 1)) {
+            if ((Input.GetKey(options.tentMovementUp.Value) && flag) || (!flag && self.input[0].y == 1)) {
                 return 0;
             }
             else {
                 return 7*(float)Math.PI/4;
             }
         }
-        else if ((Input.GetKey(KeyCode.W) && flag) || (!flag && self.input[0].y == 1)) {
-            if ((Input.GetKey(KeyCode.A) && flag) || (!flag && self.input[0].x == -1)) {
+        else if ((Input.GetKey(options.tentMovementUp.Value) && flag) || (!flag && self.input[0].y == 1)) {
+            if ((Input.GetKey(options.tentMovementLeft.Value) && flag) || (!flag && self.input[0].x == -1)) {
                 return (float)Math.PI/2;
             }
             else {
                 return (float)Math.PI/4;
             }
         }
-        else if ((Input.GetKey(KeyCode.A) && flag) || (!flag && self.input[0].x == -1)) {
-            if ((Input.GetKey(KeyCode.S) && flag) || (!flag && self.input[0].y == -1)) {
+        else if ((Input.GetKey(options.tentMovementLeft.Value) && flag) || (!flag && self.input[0].x == -1)) {
+            if ((Input.GetKey(options.tentMovementDown.Value) && flag) || (!flag && self.input[0].y == -1)) {
                 return (float)Math.PI;
             }
             else {
                 return 3*(float)Math.PI/4;
             }
         }
-        else if ((Input.GetKey(KeyCode.S) && flag) || (!flag && self.input[0].y == -1)) {
-            if ((Input.GetKey(KeyCode.D) && flag) || (!flag && self.input[0].x == 1)) {
+        else if ((Input.GetKey(options.tentMovementDown.Value) && flag) || (!flag && self.input[0].y == -1)) {
+            if ((Input.GetKey(options.tentMovementRight.Value) && flag) || (!flag && self.input[0].x == 1)) {
                 return 3*(float)Math.PI/2;
             }
             else {

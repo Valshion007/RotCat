@@ -6,10 +6,20 @@ using UnityEngine;
 namespace RotCat;
 public class RotCatOptions : OptionInterface {
     private readonly ManualLogSource Logger;
+    public readonly Configurable<KeyCode> tentMovementUp = new Configurable<KeyCode>(KeyCode.W);
+    public readonly Configurable<KeyCode> tentMovementDown = new Configurable<KeyCode>(KeyCode.S);
+    public readonly Configurable<KeyCode> tentMovementLeft = new Configurable<KeyCode>(KeyCode.A);
+    public readonly Configurable<KeyCode> tentMovementRight = new Configurable<KeyCode>(KeyCode.D);
+    public readonly Configurable<KeyCode> tentMovementEnable = new Configurable<KeyCode>(KeyCode.LeftShift);
     private UIelement[] UIArrPlayerOptions;
 
     public RotCatOptions(RotCat pluginInstance, ManualLogSource logSource) {
         Logger = logSource;
+        tentMovementUp = config.Bind("tentacleMovementUp", KeyCode.W);
+        tentMovementDown = config.Bind("tentacleMovementDown", KeyCode.S);
+        tentMovementLeft = config.Bind("tentacleMovementLeft", KeyCode.A);
+        tentMovementRight = config.Bind("tentacleMovementRight", KeyCode.D);
+        tentMovementEnable = config.Bind("tentacleMovementEnable", KeyCode.LeftShift);
     }
 
     public override void Initialize() {
@@ -22,6 +32,13 @@ public class RotCatOptions : OptionInterface {
         UIArrPlayerOptions = new UIelement[]
         {
             new OpLabel(260f, 570f, "Options", true),
+
+            new OpLabel(200f, 520f, "Movement Keybinds", true),
+            new OpKeyBinder(tentMovementUp, new Vector2(250f, 480f), new Vector2(100f, 30f)) ,
+            new OpKeyBinder(tentMovementDown, new Vector2(250f, 445f), new Vector2(100f, 30f)),
+            new OpKeyBinder(tentMovementLeft, new Vector2(250f, 410f), new Vector2(100f, 30f)),
+            new OpKeyBinder(tentMovementRight, new Vector2(250f, 375f), new Vector2(100f, 30f)),
+            new OpKeyBinder(tentMovementEnable, new Vector2(250f, 340f), new Vector2(100f, 30f))
            
         };
         opTab.AddItems(UIArrPlayerOptions);
