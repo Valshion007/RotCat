@@ -32,6 +32,11 @@ public class RotCat : BaseUnityPlugin
     {
         //On.Player.AddFood += PlayerAddFoodHook;
         On.RainWorld.OnModsInit += Init;
+
+        /*On.FlareBomb.Update += (orig, self, eu) => {
+            orig(self, eu);
+            self.flashAplha = 0f;
+        };*/
         
         On.Player.ctor += (orig, self, abstractCreature, world) =>
         {
@@ -78,6 +83,7 @@ public class RotCat : BaseUnityPlugin
                     tentacle.pList = new Point[something.segments];
                     for (int i = 0; i < something.segments; i++) {
                         tentacle.pList[i] = new Point(new Vector2(self.mainBodyChunk.pos.x, self.mainBodyChunk.pos.y-1-i), i==0?true:false);
+                        tentacle.pList[i].prevPosition = new Vector2(self.mainBodyChunk.pos.x, self.mainBodyChunk.pos.y-i);
                     }
                     tentacle.sList = new Stick[something.segments-1];
                     for (int i = 0; i < tentacle.pList.Length-1; i++) {
