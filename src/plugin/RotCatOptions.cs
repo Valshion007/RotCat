@@ -11,6 +11,7 @@ public class RotCatOptions : OptionInterface {
     public readonly Configurable<KeyCode> tentMovementLeft = new Configurable<KeyCode>(KeyCode.A);
     public readonly Configurable<KeyCode> tentMovementRight = new Configurable<KeyCode>(KeyCode.D);
     public readonly Configurable<KeyCode> tentMovementEnable = new Configurable<KeyCode>(KeyCode.LeftAlt);
+    public readonly Configurable<KeyCode> tentMovementAutoEnable = new Configurable<KeyCode>(KeyCode.LeftControl);
     private UIelement[] UIArrPlayerOptions;
 
     public RotCatOptions(RotCat pluginInstance, ManualLogSource logSource) {
@@ -20,6 +21,7 @@ public class RotCatOptions : OptionInterface {
         tentMovementLeft = config.Bind("tentacleMovementLeft", KeyCode.A);
         tentMovementRight = config.Bind("tentacleMovementRight", KeyCode.D);
         tentMovementEnable = config.Bind("tentacleMovementEnable", KeyCode.LeftAlt);
+        tentMovementAutoEnable = config.Bind("tentacleMovementAutoEnable", KeyCode.LeftControl);
     }
 
     public override void Initialize() {
@@ -43,7 +45,9 @@ public class RotCatOptions : OptionInterface {
             new OpLabel(50f, 380f, "Movement Tentacles Right", false),
             new OpKeyBinder(tentMovementRight, new Vector2(250f, 375f), new Vector2(100f, 30f)) {description = "Tentacle Right"},
             new OpLabel(50f, 345f, "Activate the tentacle movement", false),
-            new OpKeyBinder(tentMovementEnable, new Vector2(250f, 340f), new Vector2(100f, 30f)) {description = "Enable movement via tentacles"}
+            new OpKeyBinder(tentMovementEnable, new Vector2(250f, 340f), new Vector2(100f, 30f)) {description = "Enable movement via tentacles"},
+            new OpLabel(50f, 310f, "Activate automatic tentacle movement", false),
+            new OpKeyBinder(tentMovementAutoEnable, new Vector2(250f, 305f), new Vector2(100f, 30f)) {description = "Activte tentacles without choosing an initial surface"}
            
         };
         opTab.AddItems(UIArrPlayerOptions);
