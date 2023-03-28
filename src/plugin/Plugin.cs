@@ -169,7 +169,7 @@ public class RotCat : BaseUnityPlugin
         {
             orig(self, eu);
             tenticleStuff.TryGetValue(self, out var something);
-            if (something.isRot) {
+            if (something.isRot && self != null) {
                 self.scavengerImmunity = 9999;  //Might want to add a system that calculates this based on rep, since you should be able to become friends if you want
                 something.overrideControls = Input.GetKey(staticOptions.tentMovementLeft.Value) || Input.GetKey(staticOptions.tentMovementRight.Value) || Input.GetKey(staticOptions.tentMovementDown.Value) || Input.GetKey(staticOptions.tentMovementUp.Value);
                 if (something.grabWallCooldown > 0) { //Doesn't do anything right now, need to get it to play nice with the logic first
@@ -179,7 +179,7 @@ public class RotCat : BaseUnityPlugin
                 Functions.TentacleRetraction(((Custom.Dist(something.previousPosition, self.mainBodyChunk.pos) > 1f && Custom.Dist(something.previousPosition, self.mainBodyChunk.pos) < 3.5f) || Input.GetKey(staticOptions.tentMovementEnable.Value)) && something.retractionTimer < 60, something.retractionTimer > -20 && !Input.GetKey(staticOptions.tentMovementEnable.Value), something.retractionTimer <= 40 && something.retractionTimer > 0, self, something);
 
                 //Physics for the individual points and Corruption circles
-                int numIterations = 30;
+                int numIterations = 10;
                 foreach (var tentacle in something.tentacles) {
                     foreach (Point p in tentacle.pList)
                     {
@@ -189,7 +189,7 @@ public class RotCat : BaseUnityPlugin
                         else {
                             p.locked = false;
                         }
-                        if (!p.locked) {
+                        if (!p.locked && self.room != null) {
                             Vector2 positionBeforeUpdate = p.position;
                             p.position += (p.position - p.prevPosition) * Random.Range(0.9f,1.1f);
                             p.position += Vector2.down * self.room.gravity * Random.Range(0.15f,0.3f);
@@ -216,7 +216,7 @@ public class RotCat : BaseUnityPlugin
                     Vector2 perpendicularVector = Custom.PerpendicularVector(direction);
                     foreach (Point p in tentacle.pList)
                     {
-                        if (!p.locked) {
+                        if (!p.locked && self.room != null) {
                             Vector2 positionBeforeUpdate = p.position;
                             p.position += (p.position - p.prevPosition) * Random.Range(0.9f,1.1f);
                             p.position += (Vector2.down * self.room.gravity * Random.Range(0.9f,1.1f));
@@ -240,102 +240,10 @@ public class RotCat : BaseUnityPlugin
                 }
 
                 if (Input.GetKey(staticOptions.tentMovementEnable.Value)) {//Something is bugged when first activating this, reminder to figure out why. Needs fixing
-                    if (!(self.room.GetTile(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position).Solid || self.room.GetTile(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position).AnyBeam) && !something.automateMovement) {
-                        int upDown = (Input.GetKey(staticOptions.tentMovementUp.Value)? 1:0) + (Input.GetKey(staticOptions.tentMovementDown.Value)? -1:0);
-                        int rightLeft = (Input.GetKey(staticOptions.tentMovementRight.Value)? 1:0) + (Input.GetKey(staticOptions.tentMovementLeft.Value)? -1:0);
-                        if (!something.overrideControls && Custom.Dist(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position + new Vector2(3*self.input[0].x, 3*self.input[0].y), self.mainBodyChunk.pos) < 300f) {
-                            something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position += new Vector2(3*self.input[0].x, 3*self.input[0].y);
-                        }
-                        else if (something.overrideControls && Custom.Dist(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position + new Vector2(3*rightLeft, 3*upDown), self.mainBodyChunk.pos) < 300f) {
-                            something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position += new Vector2(3*rightLeft, 3*upDown);
-                        }
-                    }
-                    else {
-                        if (!something.automateMovement) {
-                            something.tentacles[0].iWantToGoThere = something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position;
-                        }
-                        something.automateMovement = true;
-                        int connectionsToSurface = 0;
-                        foreach (var tentacle in something.tentacles) {
-                            if (tentacle.isAttatchedToSurface == 1) {
-                                connectionsToSurface += 1;
-                            }
-                        }
-                        if (connectionsToSurface == 0) {
-                            something.automateMovement = false;
-                            //self.controller = new Player.NullController();
-                        }
-                        self.mainBodyChunk.vel = new Vector2(2f*connectionsToSurface*self.input[0].x, 2f*connectionsToSurface*self.input[0].y);
-                        self.airFriction = 0.25f;
-                        self.customPlayerGravity = 0.025f;
-                        foreach (var chunk in self.bodyChunks)
-                        {
-                            if (chunk != self.mainBodyChunk)
-                            {
-                                //base.Logger.LogDebug(self.room.GetTile(chunk.pos + new Vector2(0,-1f)).Solid);
-                                if (!self.room.GetTile(chunk.pos + Vector2.down).Solid)
-                                {
-                                    chunk.vel = Vector2.down;
-                                }
-                                else
-                                {
-                                    chunk.vel = new Vector2(0,0);
-                                    //chunk.pos += new Vector2(0,10);
-                                }
-                            }
-                        }
-                    }
-                    bool flag = something.overrideControls;
-                    float startPos = Functions.FindPos(flag, self, staticOptions);
-                    for (int i = 0; i < something.targetPos.Length; i++) {
-                        if (something.targetPos[i].foundSurface && Custom.Dist(self.mainBodyChunk.pos, something.targetPos[i].targetPosition) >= 250) {
-                            something.targetPos[i].foundSurface = false;
-                            something.targetPos[i].connectionTaken = false;
-                        }
-                        for (float k = 0; k < 400; k++) {
-                            for (float j = startPos + (float)Math.PI/8*(i); j < startPos + (float)Math.PI/8*(i+1); j+=((float)Math.PI)/256f) {
-                                if ((self.room.GetTile(new Vector2((Mathf.Cos(j)*k)+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*k)+self.mainBodyChunk.pos.y)).Solid || self.room.GetTile(new Vector2((Mathf.Cos(j)*k)+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*k)+self.mainBodyChunk.pos.y)).AnyBeam) && !something.targetPos[i].foundSurface) {
-                                    if (self.room.GetTile(new Vector2((Mathf.Cos(j)*k)+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*k)+self.mainBodyChunk.pos.y)).AnyBeam) {
-                                        something.targetPos[i].isPipe = true;
-                                    }
-                                    else {
-                                        something.targetPos[i].isPipe = false;
-                                    }
-                                    something.targetPos[i].targetPosition = new Vector2((Mathf.Cos(j)*k)+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*k)+self.mainBodyChunk.pos.y) + (something.targetPos[i].isPipe? (new Vector2((Mathf.Cos(j)*k)+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*k)+self.mainBodyChunk.pos.y)-self.mainBodyChunk.pos).normalized * 5 : new Vector2(0,0));
-                                    something.targetPos[i].foundSurface = true;
-                                }
-                                /*else if (!something.targetPos[i].foundSurface) {
-                                    something.targetPos[i].targetPosition = self.mainBodyChunk.pos - Vector2.down * 5;
-                                }*/
-                            }
-                        }
-                        //base.Logger.LogDebug(something.targetPos[i]);
-                        //self.room.AddObject(new Spark(something.targetPos[i].targetPosition, new Vector2(-5,5), Color.green, null, 10, 20));
-                        //self.room.AddObject(new Spark(something.targetPos[i].targetPosition, new Vector2(5,5), Color.green, null, 10, 20));
-                    }
-                    for (int i = 0; i < something.tentacles.Length; i++) {
-                        //base.Logger.LogDebug(something.targetPos[i].isPipe);
-                        //base.Logger.LogDebug(Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere));
-                        if (!something.targetPos[i].connectionTaken && something.automateMovement) {
-                            something.targetPos[i].connectionTaken = true;
-                            something.tentacles[i].iWantToGoThere = something.targetPos[i].targetPosition;
-                            //self.room.AddObject(new Spark(something.tentacles[i].iWantToGoThere, new Vector2(5,5), Color.blue, null, 10, 20));  //Testing
-                        }
-                        if (Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere) > (something.targetPos[i].isPipe? 0f:5f) && something.automateMovement) {//Change value here too
-                            something.tentacles[i].isAttatchedToSurface = 0;
-                            Vector2 direction = (something.tentacles[i].iWantToGoThere - something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position);
-                            something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position += direction / ((Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere) > 5f)? 9f:1f); //Tip, controls speed tentacles move to their target pos
-                            something.tentacles[i].canPlaySound = true;
-                            //base.Logger.LogDebug(direction);
-                        }
-                        if (Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere) < 15f) {
-                            something.tentacles[i].isAttatchedToSurface = 1;    //Casually giving the player some lenience
-                            if (something.tentacles[i].canPlaySound) {
-                                self.room.PlaySound(SoundID.Daddy_And_Bro_Tentacle_Grab_Terrain, something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, 1f, 1f);
-                                something.tentacles[i].canPlaySound = false;
-                            }
-                        }
-                    }
+                    Functions.PrimTentAndPlayerMovement(something, self, staticOptions);
+                    float startPos = Functions.FindPos(something.overrideControls, self, staticOptions);    //Finds the position around the player to start, based on Sine and Cosine intervals of pi/4
+                    Functions.TentaclesFindPositionToGoTo(something, self, startPos);
+                    Functions.MoveTentacleToPosition(something, self);
                 }
                 else {
                     something.automateMovement = false;
@@ -810,6 +718,103 @@ public class Functions {
             }
         }
         something.previousPosition = self.mainBodyChunk.pos;
+    }
+    public static void PrimTentAndPlayerMovement(PlayerEx something, Player self, RotCatOptions staticOptions) {
+        if (self.room != null && !(self.room.GetTile(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position).Solid || self.room.GetTile(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position).AnyBeam) && !something.automateMovement) {
+            int upDown = (Input.GetKey(staticOptions.tentMovementUp.Value)? 1:0) + (Input.GetKey(staticOptions.tentMovementDown.Value)? -1:0);
+            int rightLeft = (Input.GetKey(staticOptions.tentMovementRight.Value)? 1:0) + (Input.GetKey(staticOptions.tentMovementLeft.Value)? -1:0);
+            if (Custom.Dist(something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position + new Vector2(3*(something.overrideControls? rightLeft:self.input[0].x), 3*(something.overrideControls? upDown:self.input[0].y)), self.mainBodyChunk.pos) < 300f) {
+                something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position += new Vector2(3*(something.overrideControls? rightLeft:self.input[0].x), 3*(something.overrideControls? upDown:self.input[0].y));
+            }
+        }
+        else {
+            if (!something.automateMovement) {
+                something.tentacles[0].iWantToGoThere = something.tentacles[0].pList[something.tentacles[0].pList.Length-1].position;
+            }
+            something.automateMovement = true;
+            int connectionsToSurface = 0;
+            foreach (var tentacle in something.tentacles) {
+                if (tentacle.isAttatchedToSurface == 1) {
+                    connectionsToSurface += 1;
+                }
+            }
+            if (connectionsToSurface == 0) {
+                something.automateMovement = false;
+                //self.controller = new Player.NullController();
+            }
+            self.mainBodyChunk.vel = new Vector2(2.3f*connectionsToSurface*self.input[0].x, 2.3f*connectionsToSurface*self.input[0].y);
+            self.airFriction = 0.75f;
+            self.customPlayerGravity = 0.25f;
+            foreach (var chunk in self.bodyChunks)
+            {
+                if (chunk != self.mainBodyChunk)
+                {
+                    //base.Logger.LogDebug(self.room.GetTile(chunk.pos + new Vector2(0,-1f)).Solid);
+                    if (self.room != null && !self.room.GetTile(chunk.pos + Vector2.down).Solid)
+                    {
+                        chunk.vel = Vector2.down * self.customPlayerGravity * self.room.gravity;
+                    }
+                    else
+                    {
+                        chunk.vel = new Vector2(0,1);
+                        //chunk.pos += new Vector2(0,10);
+                    }
+                }
+            }
+        }
+    }
+    public static void TentaclesFindPositionToGoTo(PlayerEx something, Player self, float startPos) {
+        for (int i = 0; i < something.targetPos.Length; i++) {
+            if (something.targetPos[i].foundSurface && Custom.Dist(self.mainBodyChunk.pos, something.targetPos[i].targetPosition) >= 250) {
+                something.targetPos[i].foundSurface = false;
+                something.targetPos[i].connectionTaken = false;
+            }
+            for (float k = 0; k < 200; k++) {
+                for (float j = startPos + (float)Math.PI/8*(i); j < startPos + (float)Math.PI/8*(i+1); j+=((float)Math.PI)/256f) {
+                    if (self.room != null && (self.room.GetTile(new Vector2((Mathf.Cos(j)*(k * 2))+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*(k * 2))+self.mainBodyChunk.pos.y)).Solid || self.room.GetTile(new Vector2((Mathf.Cos(j)*(k * 2))+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*(k * 2))+self.mainBodyChunk.pos.y)).AnyBeam) && !something.targetPos[i].foundSurface) {
+                        if (self.room.GetTile(new Vector2((Mathf.Cos(j)*(k * 2))+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*(k * 2))+self.mainBodyChunk.pos.y)).AnyBeam) {
+                            something.targetPos[i].isPipe = true;
+                        }
+                        else {
+                            something.targetPos[i].isPipe = false;
+                        }
+                        something.targetPos[i].targetPosition = new Vector2((Mathf.Cos(j)*(k * 2))+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*(k * 2))+self.mainBodyChunk.pos.y) + (something.targetPos[i].isPipe? (new Vector2((Mathf.Cos(j)*(k * 2))+self.mainBodyChunk.pos.x,(Mathf.Sin(j)*(k * 2))+self.mainBodyChunk.pos.y)-self.mainBodyChunk.pos).normalized * 5 : new Vector2(0,0));
+                        something.targetPos[i].foundSurface = true;
+                    }
+                    /*else if (!something.targetPos[i].foundSurface) {
+                        something.targetPos[i].targetPosition = self.mainBodyChunk.pos - Vector2.down * 5;
+                    }*/
+                }
+            }
+            //base.Logger.LogDebug(something.targetPos[i]);
+            //self.room.AddObject(new Spark(something.targetPos[i].targetPosition, new Vector2(-5,5), Color.green, null, 10, 20));
+            //self.room.AddObject(new Spark(something.targetPos[i].targetPosition, new Vector2(5,5), Color.green, null, 10, 20));
+        }
+    }
+    public static void MoveTentacleToPosition(PlayerEx something, Player self) {
+        for (int i = 0; i < something.tentacles.Length; i++) {
+            //base.Logger.LogDebug(something.targetPos[i].isPipe);
+            //base.Logger.LogDebug(Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere));
+            if (!something.targetPos[i].connectionTaken && something.automateMovement) {
+                something.targetPos[i].connectionTaken = true;
+                something.tentacles[i].iWantToGoThere = something.targetPos[i].targetPosition;
+                //self.room.AddObject(new Spark(something.tentacles[i].iWantToGoThere, new Vector2(5,5), Color.blue, null, 10, 20));  //Testing
+            }
+            if (Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere) > (something.targetPos[i].isPipe? 0f:5f) && something.automateMovement) {//Change value here too
+                something.tentacles[i].isAttatchedToSurface = 0;
+                Vector2 direction = (something.tentacles[i].iWantToGoThere - something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position);
+                something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position += direction / ((Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere) > 5f)? 9f:1f); //Tip, controls speed tentacles move to their target pos
+                something.tentacles[i].canPlaySound = true;
+                //base.Logger.LogDebug(direction);
+            }
+            if (self.room != null && Custom.Dist(something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, something.tentacles[i].iWantToGoThere) < 15f) {
+                something.tentacles[i].isAttatchedToSurface = 1;    //Casually giving the player some lenience
+                if (something.tentacles[i].canPlaySound) {
+                    self.room.PlaySound(SoundID.Daddy_And_Bro_Tentacle_Grab_Terrain, something.tentacles[i].pList[something.tentacles[i].pList.Length-1].position, 1f, 1f);
+                    something.tentacles[i].canPlaySound = false;
+                }
+            }
+        }
     }
 }
 
